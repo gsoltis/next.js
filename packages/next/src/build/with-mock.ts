@@ -169,7 +169,6 @@ export async function mockAsyncfn<T>(
     result = await f()
   } finally {
     // Cleanup
-    delete fsBinding._mockedBinding
     networkInterceptor.dispose()
     unpatchTCP()
     unpatchFS()
