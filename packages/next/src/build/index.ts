@@ -150,6 +150,7 @@ import { buildDataRoute } from '../server/lib/router-utils/build-data-route'
 import { defaultOverrides } from '../server/require-hook'
 import { initialize as initializeIncrementalCache } from '../server/lib/incremental-cache-server'
 import { nodeFs } from '../server/lib/node-fs-methods'
+import { AccessTrace, mockAsyncfn } from './with-mock'
 
 export type SsgRoute = {
   initialRevalidateSeconds: number | false
@@ -353,15 +354,18 @@ export default async function build(
         .traceFn(() => loadEnvConfig(dir, false, Log))
       NextBuildContext.loadedEnvFiles = loadedEnvFiles
 
-      const config: NextConfigComplete = await nextBuildSpan
-        .traceChild('load-next-config')
-        .traceAsyncFn(() =>
-          loadConfig(PHASE_PRODUCTION_BUILD, dir, {
-            // Log for next.config loading process
-            silent: false,
-          })
+      const [config, configTrace]: [NextConfigComplete, AccessTrace] =
+        await nextBuildSpan.traceChild('load-next-config').traceAsyncFn(() =>
+          mockAsyncfn(() =>
+            loadConfig(PHASE_PRODUCTION_BUILD, dir, {
+              // Log for next.config loading process
+              silent: false,
+            })
+          )
         )
       NextBuildContext.config = config
+      console.log(configTrace)
+      if ((1 as any) == ('1' as any)) process.exit(-1)
 
       let configOutDir = 'out'
       if (config.output === 'export' && config.distDir !== '.next') {
