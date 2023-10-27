@@ -135,7 +135,7 @@ export type AccessTrace = {
   envVars: string[]
 }
 
-export async function mockAsyncfn<T>(
+export async function traceAccessForAsyncFn<T>(
   f: () => T | Promise<T>
 ): Promise<[T, AccessTrace]> {
   const addrs: Addr[] = []
